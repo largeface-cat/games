@@ -1,7 +1,7 @@
 # games
 My small games.
 # trading.py
-Example: see trading.png . May help
+Example: see trading.png . May help you in certain interviews.
 # greedySnake.py
 A buggy blinding snake. See how many bugs you will find. Not working on linux but runs on Windows. Crashing into borders or body ends game.
 requires pygame & numpy
