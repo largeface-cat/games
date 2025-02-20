@@ -1,21 +1,32 @@
-# This is a card trading game for preparing for quant interviews
+# This is a card trading game for preparing for quant interviews.?)
 # A standard deck of 52 cards is used, with 4 suits and 13 ranks
 # A number of cards are drawn from the deck, and as the game progresses, cards are shown to the player
 # We trade on an asset that is a function of the cards drawn
+# Modify the function by hardcoding executable python lines into asset_str. Examples are given
+# Bot trades against you according to a MC sim result.
+# Try to beat it and get correct when asked to calc your PnL!
 import random
 from tqdm import tqdm
 from copy import deepcopy
-from typing import List, Tuple, Callable
+from typing import List, Callable
 
 A_IS_1 = True
 MONTE_CARLO_SIM = 10000
-DEBUG = True
+DEBUG = True  # Choose to cheat or not.
 RED = '\033[91m'
 BLACK = '\033[30m'
 END = '\033[0m'
 BOLD = '\033[1m'
 red = [0, 1]
 black = [2, 3]
+asset_str = [
+    "max(0, sum([card.rank for card in cards if card.suit in red])-10.5)",
+    "len([card for card in cards if card.suit in red]) * sum([card.rank for card in cards if card.suit in black])",
+][0]
+    # the asset_str should be a line of python code that 
+    # returns a float based on the `cards` variable: List[Card]
+
+
 class Card():
     def __init__(self, suit:int, rank:int) -> None:
         '''
@@ -43,6 +54,7 @@ class Deck():
         return str(self.cards)
     def __repr__(self):
         return self.__str__()
+
 class Game():
     def __init__(self) -> None:
         self.deck = Deck()
@@ -111,25 +123,25 @@ class Player():
 
 
 
-
 if __name__ == '__main__':
     game = Game()
-    asset_str = "sum([(x.rank if (x.suit in red) else 0) for x in cards ])"
+    
     print(f"Asset function: {asset_str}")
     exec(f"game.init(lambda cards: {asset_str})")
     bot = Player('Bot', 0, 0)
     player = Player('You', 0, 0)
-    for round in range(len(game.schedule)):
+    for rnd in range(len(game.schedule)):
         
-        print(f'Round {round + 1}: {" ".join([str(card) for card in game.shown_public_cards])}')
+        print(f'Round {rnd + 1}: {" ".join([str(card) for card in game.shown_public_cards])}')
         while True:
             bid = float(input('Bid: '))
             ask = float(input('Ask: '))
             mid = (bid + ask) / 2
-            if (ask - bid) / bid > game.max_spread_ratio:
+            if bid <= 0 or (ask - bid) / bid > game.max_spread_ratio+1e-5:
                 print('Spread too high, please adjust')
                 continue
-            elif bid / game.tick_size != int(bid / game.tick_size) or ask / game.tick_size != int(ask / game.tick_size):
+            elif abs(bid / game.tick_size - round(bid / game.tick_size)) > 1e-5 or abs(ask / game.tick_size - round(ask / game.tick_size)) > 1e-5:
+                print(bid / game.tick_size != int(bid / game.tick_size), bid / game.tick_size, int(bid / game.tick_size))
                 print(f'Price should be multiple of tick size {game.tick_size}')
                 continue
             break
@@ -147,7 +159,7 @@ if __name__ == '__main__':
             player.buy(bid, size)
             print(f'Bot sold {size} at {bid}')
         game.draw()
-    print(f'Final: {game.shown_public_cards}')
+    print(f'Final: {" ".join([str(card) for card in game.shown_public_cards])}')
     true_value = game.traded_asset(game.shown_public_cards)
     print(f'True value: {true_value}')
     pnl = float(input('PnL: '))
@@ -157,7 +169,7 @@ if __name__ == '__main__':
     player.settle(true_value)
     assert bot.cash + player.cash == 0, f"Bot cash {bot.cash}, Player cash {player.cash}"
     assert bot.position == player.position == 0, f"Bot position {bot.position}, Player position {player.position}"
-    if pnl != player.cash:
+    if abs(pnl - player.cash) > 1e-6:
         print(f'Wrong calculation! PnL should be {player.cash}')
     else:
         print(f'Correct calculation! PnL is {player.cash}')

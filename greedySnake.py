@@ -2,19 +2,18 @@ import pygame as pg
 import time
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 import threading
 
 
 Lock = threading.Lock()  # 在threading模块中获得锁类
 direction = 'r'
-num_foods = 50
+num_foods = 10
 last_direction = direction
 alive = True
 score = 0
 pg.init()
 pg.display.set_caption('title')
-screen = pg.display.set_mode((1920, 1080))
+screen = pg.display.set_mode((240, 480))
 
 class Snake:
     def __init__(self, screen, x=0, y=0, width=20, height=20, color=(0, 0, 0)):
