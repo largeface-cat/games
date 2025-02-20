@@ -1,5 +1,7 @@
 # games
 My small games.
+# figgie.py 
+Small script that helps u play Figgie by calculating posterior prob of scenes from your hands.
 # trading.py
 Example: see trading.png . May help you in certain interviews.
 # greedySnake.py
